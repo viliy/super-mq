@@ -1,0 +1,18 @@
+-
+    id: 1
+    name: 'default'
+    super_dns: !!str '192.168.10.10:9001'
+    super_auth: !!str '{"username":"www","password":"123"}'
+    mq_auth: !!str '{"username":"guest","password":"guest"}'
+    mq_api_dns: !!str 'http://127.0.0.1:15672/'
+    status: 1
+    abstract: 测试
+-
+    id: 2
+    name: 'default2'
+    super_dns: '192.168.10.10:9001'
+    super_auth: '{"username":"www","password":"123"}'
+    mq_auth: '{"username":"guest","password":"guest"}'
+    mq_api_dns: 'http://127.0.0.1:15672/'
+    status: 1
+    abstract: 测试

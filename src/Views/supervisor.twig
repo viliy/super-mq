@@ -1,0 +1,301 @@
+<html>
+<head>
+    <title>Supervisor管理</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .el-header {
+            background-color: #B3C0D1;
+            color: #333;
+        }
+
+        .el-aside {
+            color: #333;
+        }
+
+        .el-menu-demo {
+            width: 100%;
+            border-radius: 2px;
+            line-height: 60px;
+            text-align: center;
+            vertical-align: center;
+            font-weight: bold;
+        }
+
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            vertical-align: center;
+            height: 60px;
+            line-height: 60px;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        .el-aside {
+            background-color: #D3DCE6;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
+        }
+
+        .el-main {
+            flex: 1;
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            height: 100%;
+        }
+
+        body > div > .el-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%
+        }
+
+        .el-menu-vertical-demo > li {
+            float: left;
+            width: 100%;
+            text-align: left;
+        }
+    </style>
+</head>
+<body style="margin: auto;">
+<div id="app" style="margin: auto;">
+    <el-container>
+        <el-header style="padding: 0">
+            <el-menu
+                    :default-active="activeIndex"
+                    class="el-menu-demo"
+                    mode="horizontal"
+                    @select="handleSelect"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    @select="handleSelect"
+                    active-text-color="#ffd04b">
+                <el-menu-item
+                        style="margin-left: 180px"
+                        index="1">MQ管理
+                </el-menu-item>
+                <el-menu-item index="2">Supervisor管理</el-menu-item>
+                <el-menu-item index="3">监控管理</el-menu-item>
+            </el-menu>
+        </el-header>
+        <el-main>
+            <el-row>
+                <el-col :span="2">
+                    <el-menu
+                            :default-active="activeHost"
+                            class="el-menu-vertical-demo"
+                            @select="handleSystem">
+                        <h5 style="padding: 10px">选择HOST</h5>
+                        <template v-for="system in systems">
+                            <el-menu-item :index="system.id">
+                                <i class="el-icon-menu"></i>
+                                <span slot="title">${ system.name }$</span>
+                            </el-menu-item>
+                        </template>
+                    </el-menu>
+                </el-col>
+                <el-col :span="22">
+                    <el-table
+                            :data="suData"
+                            height="100%"
+                            :row-class-name="tableRowClassName"
+                    >
+                        <el-table-column prop="group" label="进程组" align="center"></el-table-column>
+                        <el-table-column prop="name" label="进程名称"></el-table-column>
+                        <el-table-column prop="start" label="启动时间"></el-table-column>
+                        <el-table-column prop="stop" label="关闭时间"></el-table-column>
+                        <el-table-column prop="runtime" label="运行时间(min)"></el-table-column>
+                        <el-table-column label="运行状态">
+                            <template slot-scope="{row}">
+                                <el-tag :type="row.statename | statusFilter">
+                                    <span>${ row.statename | getStatusS }$</span>
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column align="center" label="操作选项">
+                            <template slot-scope="scope">
+                                <el-button type="primary" size="small" @click="handleStart(scope)">启动</el-button>
+                                <el-button type="danger" size="small" @click="handleStop(scope)">关闭</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-col>
+            </el-row>
+        </el-main>
+        <el-footer>SUPER-MQ-MONITOR</el-footer>
+    </el-container>
+</div>
+</body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<style>
+    .el-table .warning-row {
+        background: rgba(227, 130, 75, 0.27);
+    }
+
+    .el-table .danger-row {
+        background: rgba(150, 25, 6, 0.33);
+    }
+
+    .el-table .success-row {
+        background: #f0f9eb;
+    }
+
+    .el-table .starting-row {
+        background: #4fb7f9;
+    }
+</style>
+<script>
+    function setSystem(system) {
+        localStorage['system'] = system
+    }
+
+    function getSystem() {
+        return localStorage.getItem('system') ? localStorage.getItem('system') : '1';
+    }
+
+    const sys = '{{ system }}';
+    const system = JSON.parse(sys.replace(/&quot;/g, '"'));
+    const defaultSystem = getSystem();
+
+    // running：进程处于运行状态
+    // starting：Supervisor 收到启动请求后，进程处于正在启动过程中
+    // stopped：进程处于关闭状态
+    // stopping：Supervisor 收到关闭请求后，进程处于正在关闭过程中
+    // backoff：进程进入 starting 状态后，由于马上就退出导致没能进入 running 状态
+    // fatal：进程没有正常启动
+    // exited：进程从 running 状态退出
+    new Vue({
+        el: '#app',
+        delimiters: ['${', '}$'],
+        filters: {
+            statusFilter(status) {
+                const statusMap = {
+                    FATAL: 'danger',
+                    RUNNING: 'success',
+                    STOPPED: 'info',
+                    BACKOFF: 'danger',
+                    EXITED: 'info',
+                    STARTING: 'success',
+                    STOPPING: 'info',
+                };
+                return statusMap[status]
+            },
+            getStatusS(index) {
+                console.log(index);
+                const state = {
+                    'STOPPED': '已停止',
+                    'FATAL': '运行失败',
+                    'RUNNING': '运行中',
+                    'BACKOFF': '异常退出',
+                    'EXITED': '已退出',
+                    'STARTING': '启动中',
+                    'STOPPING': '关闭中',
+                };
+
+                return state[index]
+            },
+        },
+        data() {
+            return {
+                systems: system,
+                activeHost: defaultSystem,
+                activeIndex: '2',
+                suData: []
+            };
+        },
+        created() {
+            this.getMq()
+        },
+        methods: {
+            tableRowClassName({row, rowIndex}) {
+                if (row.statename === 'FATAL') {
+                    return 'danger-row';
+                }
+                if (row.statename === 'RUNNING') {
+                    return 'success-row';
+                }
+                if (row.statename === 'STOPPED') {
+                    return 'warning-row';
+                }
+                if (row.statename === 'STARTING') {
+                    return 'starting-row';
+                }
+                return '';
+            },
+            handleSelect(key, keyPath) {
+                const urls = [
+                    '/mq', '/supervisor', 'monitor'
+                ];
+                location.href = urls[key - 1]
+            },
+            getMq() {
+                axios.get('/api/v1/supervisor?system=' + this.activeHost).then((response) => {
+                    this.suData = response.data;
+                    console.log(this.suData);
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            handleSystem(key, keyPath) {
+                setSystem(keyPath);
+                axios.get('/api/v1/supervisor?system=' + keyPath).then((response) => {
+                    this.suData = response.data;
+                    console.log(this.suData);
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            handleStart(row) {
+                let _this = this;
+                let params = new URLSearchParams({
+                    'system': this.activeHost,
+                    'group': row.row.group
+                });
+                axios.put('/api/v1/supervisor/restart?' + params.toString()).then((response) => {
+                    _this.$message({
+                        message: response.data.message,
+                        type: 'success'
+                    });
+                    _this.getMq()
+                }).catch(function (error) {
+                    _this.$message({
+                        message: error.data.message,
+                        type: 'danger'
+                    });
+                });
+            },
+            handleStop(row) {
+                let _this = this;
+                let params = new URLSearchParams({
+                    'system': this.activeHost,
+                    'group': row.row.group
+                });
+                axios.put('/api/v1/supervisor/stop?' + params.toString()).then((response) => {
+                    _this.$message({
+                        message: response.data.message,
+                        type: 'success'
+                    });
+                    _this.getMq()
+                }).catch(function (error) {
+                    _this.$message({
+                        message: error.response.data.message,
+                        type: 'error'
+                    });
+                });
+            },
+        }
+    });
+</script>
+</html>

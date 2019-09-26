@@ -1,0 +1,33 @@
+-
+    system_id: 1
+    status: 1
+    name: test
+    group: test
+    mq_name: add_fare_data
+    mq_node: rabbit@rabbitmq01
+    mq_consumer: 1
+    mq_min_consumer: 1
+    mq_vhost: test_dev01
+    abstract: test节点
+-
+    system_id: 2
+    status: 1
+    name: test1
+    group: test1
+    mq_name: test1
+    mq_node: rabbit@rabbitmq01
+    mq_consumer: 1
+    mq_min_consumer: 1
+    mq_vhost: test_dev01
+    abstract: test节点
+-
+    system_id: 1
+    status: 1
+    name: test2
+    group: test2
+    mq_name: test2
+    mq_node: rabbit@rabbitmq01
+    mq_consumer: 1
+    mq_min_consumer: 1
+    mq_vhost: test_dev01
+    abstract: test节点

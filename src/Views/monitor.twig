@@ -1,0 +1,413 @@
+<html>
+<head>
+    <title>Supervisor管理</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .el-header {
+            background-color: #B3C0D1;
+            color: #333;
+        }
+
+        .el-aside {
+            color: #333;
+        }
+
+        .el-menu-demo {
+            width: 100%;
+            border-radius: 2px;
+            line-height: 60px;
+            text-align: center;
+            vertical-align: center;
+            font-weight: bold;
+        }
+
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            vertical-align: center;
+            height: 60px;
+            line-height: 60px;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        .el-aside {
+            background-color: #D3DCE6;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
+        }
+
+        .el-main {
+            flex: 1;
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            height: 100%;
+        }
+
+        body > div > .el-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%
+        }
+
+        .el-menu-vertical-demo > li {
+            float: left;
+            width: 100%;
+            text-align: left;
+        }
+    </style>
+</head>
+<body style="margin: auto;">
+<div id="app" style="margin: auto;">
+    <el-container>
+        <el-header style="padding: 0">
+            <el-menu
+                    :default-active="activeIndex"
+                    class="el-menu-demo"
+                    mode="horizontal"
+                    @select="handleSelect"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    @select="handleSelect"
+                    active-text-color="#ffd04b">
+                <el-menu-item
+                        style="margin-left: 180px"
+                        index="1">MQ管理
+                </el-menu-item>
+                <el-menu-item index="2">Supervisor管理</el-menu-item>
+                <el-menu-item index="3">监控管理</el-menu-item>
+            </el-menu>
+        </el-header>
+
+        <el-main>
+            <el-row>
+                <el-col :span="2">
+                    <el-menu
+                            :default-active="activeHost"
+                            class="el-menu-vertical-demo"
+                            @select="handleSystem"
+                            style="height: 100%"
+                    >
+                        <h5 style="padding: 10px">选择HOST</h5>
+                        <template v-for="system in systems">
+                            <el-menu-item :index="system.id">
+                                <i class="el-icon-menu"></i>
+                                <span slot="title">${ system.name }$</span>
+                            </el-menu-item>
+                        </template>
+                    </el-menu>
+                </el-col>
+                <el-col :span="22">
+                    <el-table
+                            :data="suData"
+                            height="92%"
+                            :row-class-name="tableRowClassName"
+                    >
+                        <el-table-column prop="id" label="ID" sortable align="center" ></el-table-column>
+                        <el-table-column prop="group" label="进程组"></el-table-column>
+                        <el-table-column prop="name" label="进程名称"></el-table-column>
+                        <el-table-column prop="mq_min_consumer" label="最小消费者"></el-table-column>
+                        <el-table-column label="MQ" width="180">
+                            <template slot-scope="{row}">
+                                <el-popover trigger="hover" placement="top">
+                                    <p>queue: ${ row.mq_name }$</p>
+                                    <p>节点: ${ row.mq_node }$</p>
+                                    <p>预设消费者数量: ${ row.mq_consumer }$</p>
+                                    <p>最小消费者数量: ${ row.mq_min_consumer }$</p>
+                                    <div slot="reference" class="name-wrapper">
+                                        <el-tag size="medium">${ row.mq_name }$</el-tag>
+                                    </div>
+                                </el-popover>
+                            </template>
+                        </el-table-column>
+                        {#                <el-table-column prop="updated_at" label="更新时间"></el-table-column>#}
+                        <el-table-column prop="abstract" label="描述" :show-overflow-tooltip="true"></el-table-column>
+                        <el-table-column label="监控状态" width="120" sortable>
+                            <template slot-scope="{row}">
+                                <el-tag :type="row.status | statusFilter" @click="handleStatus(row)">
+                                    <span>${ row.status | getStatusS }$</span>
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column align="center" label="操作选项" width="240">
+                            <template slot-scope="scope">
+                                <el-button type="primary" size="small" @click="handleEdit(scope)">编辑</el-button>
+                                <el-button type="danger" size="small" @click="handleDelete(scope)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-pagination
+                            background
+                            v-show="total>0"
+                            :total="total"
+                            :current-page.sync="listQuery.page"
+                            :current-page="listQuery.page"
+                            :page-sizes="[10, 15, 20, 30]"
+                            :page-size="listQuery.per_page"
+                            :page-size.sync="listQuery.per_page"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            style="padding: 10px; background-color: #fff"
+                            @size-change="getMq"
+                            @current-change="getMq"
+                    >
+                    </el-pagination>
+                </el-col>
+            </el-row>
+
+            <el-dialog title="编辑监控信息" :visible.sync="dialogFormVisible" width="35%">
+                <el-form :model="monitor" :rules="rules" ref="monitor">
+                    <el-form-item label="进程组" prop="group" label-width="120px">
+                        <el-input v-model="monitor.group"></el-input>
+                    </el-form-item>
+                    <el-form-item label="活动名称" prop="name" label-width="120px">
+                        <el-input v-model="monitor.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="mq名称" prop="mq_name" label-width="120px">
+                        <el-input v-model="monitor.mq_name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="mq节点" prop="mq_node" label-width="120px">
+                        <el-input v-model="monitor.mq_node"></el-input>
+                    </el-form-item>
+                    <el-form-item label="预设消费者数量" prop="mq_consumer" label-width="120px">
+                        <el-input v-model="monitor.mq_consumer"></el-input>
+                    </el-form-item>
+                    <el-form-item label="最小消费者数量" prop="mq_min_consumer" label-width="120px">
+                        <el-input v-model="monitor.mq_min_consumer"></el-input>
+                    </el-form-item>
+                    <el-form-item label="描述" prop="abstract" label-width="120px">
+                        <el-input v-model="monitor.abstract"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="dialogFormVisible=false">取 消</el-button>
+                    <el-button type="primary" @click="confirm('monitor')">确 定</el-button>
+                </div>
+            </el-dialog>
+        </el-main>
+        <el-footer>SUPER-MQ-MONITOR</el-footer>
+    </el-container>
+</div>
+</body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<style>
+    .el-table .warning-row {
+        background: oldlace;
+    }
+
+    .el-table .danger-row {
+        background: #e3824b;
+    }
+
+    .el-table .success-row {
+        background: #f0f9eb;
+    }
+</style>
+<script>
+    function setSystem(system) {
+        localStorage['system'] = system
+    }
+    function getSystem() {
+        return localStorage.getItem('system') ? localStorage.getItem('system') : '1';
+    }
+    const sys = '{{ system }}';
+    const system = JSON.parse(sys.replace(/&quot;/g, '"'));
+    const defaultMonitor = {
+        group: '',
+        name: '',
+        mq_name: '',
+        mq_node: '',
+        mq_vhost: '',
+        mq_consumer: 1,
+        mq_min_consumer: 1,
+        abstract: '',
+    };
+    const defaultSystem = getSystem();
+
+    new Vue({
+        el: '#app',
+        delimiters: ['${', '}$'],
+        filters: {
+            statusFilter(status) {
+                const statusMap = [
+                    'danger',
+                    'success',
+                ];
+                return statusMap[status]
+            },
+            getStatusS(index) {
+                console.log(index);
+                const state = [
+                    '未启用',
+                    '已启用',
+                ];
+                return state[index]
+            },
+        },
+        data() {
+            return {
+                systems: system,
+                activeHost: defaultSystem,
+                activeIndex: '3',
+                total: 0,
+                listQuery: {
+                    page: 1,
+                    system: defaultSystem,
+                    per_page: 10
+                },
+                currentPage: 1,
+                pageSize: 10,
+                suData: [],
+                monitor: Object.assign({}, defaultMonitor),
+                dialogType: 'edit',
+                dialogFormVisible: false,
+                rules: {
+                    group: [
+                        {required: true, message: '请输入进程用户组', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur'}
+                    ],
+                    name: [
+                        {required: true, message: '请输入进程名称', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 2 到 50 个字符', trigger: ['blur', 'change']}
+                    ],
+                    mq_name: [
+                        {required: true, message: '请输入mq名称', trigger: 'blur'},
+                    ],
+                    mq_node: [
+                        {required: false, message: '请输入mq节点', trigger: 'blur'},
+                    ],
+                    mq_vhost: [
+                        {required: false, message: '请输入mq_vhost', trigger: 'blur'},
+                    ],
+                    mq_consumer: [
+                        {required: true, message: '请输入mq消费者预期数量', trigger: 'blur'},
+                        {type: 'number', message: '必须为数字值'}
+                    ],
+                    mq_min_consumer: [
+                        {required: true, message: '请输入mq消费者最小数量', trigger: 'blur'},
+                        {type: 'number', message: '必须为数字值'}
+                    ],
+                    abstract: [
+                        {required: true, message: '请输入监控描述', trigger: 'blur'},
+                    ],
+                }
+            };
+        },
+        created() {
+            this.getMq();
+            console.log(this.activeHost)
+        },
+        methods: {
+            tableRowClassName({row, rowIndex}) {
+                if (row.statename === 'FATAL') {
+                    return 'danger-row';
+                }
+                if (row.statename === 'RUNNING') {
+                    return 'success-row';
+                }
+                if (row.statename === 'STOPED') {
+                    return 'warning-row';
+                }
+                return '';
+            },
+            handleSelect(key, keyPath) {
+                const urls = [
+                    '/mq', '/supervisor', 'monitor'
+                ];
+                location.href = urls[key - 1]
+            },
+            getMq() {
+                let params = new URLSearchParams(this.listQuery);
+                axios.get('/api/v1/monitor?' + params.toString()).then((response) => {
+                    this.suData = response.data.data;
+                    this.total = response.data.total;
+                    this.listQuery.page = response.data.current_page;
+                    this.listQuery.per_page = response.data.per_page;
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            handleEdit(scope) {
+                this.dialogFormVisible = true;
+                this.dialogType = 'edit';
+                this.monitor = JSON.parse(JSON.stringify(scope.row))
+            },
+            handleStatus(row) {
+                console.log(row);
+                if (!row.id || !row.group || !row.name || !row.mq_min_consumer || !row.mq_name) {
+                    this.$message({
+                        message: '请完善基础信息',
+                        type: 'warning'
+                    });
+                    return false;
+                }
+                let _this = this;
+                axios.put('/api/v1/monitor/status/' + row.id + '?status=' +(row.status === 1 ? 0 : 1)).then(() => {
+                    _this.$message({
+                        message: '设置成功',
+                        type: 'success'
+                    });
+                    _this.getMq()
+                }).catch(function (error) {
+                    _this.$message({
+                        message: error.data.message,
+                        type: 'success'
+                    });
+                });
+            },
+            confirm(formName) {
+                console.log(this.$refs);
+                let _this = this;
+                _this.$refs[formName].validate((valid) => {
+                    if (valid === false) {
+                        _this.$message({
+                            message: '请填写参数',
+                            type: 'error',
+                            duration: 5 * 1000
+                        })
+                    }
+                    _this.validator = valid
+                });
+                console.log(formName, _this.monitor, _this.validator, _this.$refs[formName]);
+
+                if (!_this.validator) {
+                    return false
+                }
+                const isEdit = this.dialogType === 'edit';
+                if (isEdit) {
+                    const params = new URLSearchParams(_this.monitor);
+                    axios.put('/api/v1/monitor/' + _this.monitor.id, params).then(() => {
+                        _this.$message({
+                            message: '设置成功',
+                            type: 'success'
+                        });
+                        _this.getMq()
+                    }).catch(function (error) {
+                        _this.$message({
+                            message: error.data.message,
+                            type: 'success'
+                        });
+                    });
+                } else {
+                }
+                this.dialogFormVisible = false;
+            },
+            handleSystem(key, keyPath) {
+                setSystem(keyPath);
+                this.getMq()
+            }
+        }
+    });
+</script>
+</html>

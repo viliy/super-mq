@@ -1,0 +1,11 @@
+preset: symfony
+
+risky: false
+
+disabled:
+    - binary_operator_spaces
+finder:
+    name:
+        - "*.php"
+    path:
+        - "src"

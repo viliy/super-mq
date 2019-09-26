@@ -1,0 +1,19 @@
+<phpunit
+        colors="true"
+        bootstrap="vendor/autoload.php"
+>
+    <testsuites>
+        <testsuite name="App">
+            <directory>src/Tests</directory>
+        </testsuite>
+
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-html" target="zzzz/coverage"/>
+    </logging>
+</phpunit>

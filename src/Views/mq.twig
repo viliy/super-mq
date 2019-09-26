@@ -1,0 +1,194 @@
+<html>
+<head>
+    <title>MQ管理</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        .el-header {
+            background-color: #B3C0D1;
+            color: #333;
+        }
+        .el-aside {
+            color: #333;
+        }
+        .el-menu-demo {
+            width: 100%;
+            border-radius: 2px;
+            line-height: 60px;
+            text-align: center;
+            vertical-align: center;
+            font-weight: bold;
+        }
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            vertical-align: center;
+            height: 60px;
+            line-height: 60px;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+        .el-aside {
+            background-color: #D3DCE6;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
+        }
+        .el-main {
+            flex: 1;
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            height: 100%;
+        }
+        body > div > .el-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%
+        }
+        .el-menu-vertical-demo > li {
+            float: left;
+            width: 100%;
+            text-align: left;
+        }
+    </style>
+</head>
+<body style="margin: auto;">
+<div id="app" style="margin: auto;">
+    <el-container>
+        <el-header style="padding: 0">
+            <el-menu
+                    :default-active="activeIndex2"
+                    class="el-menu-demo"
+                    mode="horizontal"
+                    @select="handleSelect"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    active-text-color="#ffd04b">
+                <el-menu-item
+                        style="margin-left: 180px"
+                        index="1">MQ管理
+                </el-menu-item>
+                <el-menu-item index="2">Supervisor管理</el-menu-item>
+                <el-menu-item index="3">监控管理</el-menu-item>
+            </el-menu>
+        </el-header>
+        <el-main>
+            <el-row>
+                <el-col :span="2">
+                    <el-menu
+                            :default-active="activeHost"
+                            class="el-menu-vertical-demo"
+                            @select="handleSystem">
+                        <h5 style="padding: 10px">选择HOST</h5>
+                        <template v-for="system in systems">
+                            <el-menu-item :index="system.id">
+                                <i class="el-icon-menu"></i>
+                                <span slot="title">${ system.name }$</span>
+                            </el-menu-item>
+                        </template>
+                    </el-menu>
+                </el-col>
+                <el-col :span="22">
+                <el-table
+                    :data="mqData"
+                    height="100%"
+                    :row-class-name="tableRowClassName"
+            >
+                <el-table-column prop="name" label="queues" align="center">
+                </el-table-column>
+                <el-table-column prop="consumers" label="消费者数量" sortable>
+                </el-table-column>
+                <el-table-column prop="vhost" label="vhost" >
+                </el-table-column>
+                <el-table-column prop="node" label="node" >
+                </el-table-column>
+            </el-table>
+                </el-col>
+            </el-row>
+        </el-main>
+        <el-footer>SUPER-MQ-MONITOR</el-footer>
+    </el-container>
+</div>
+</body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<style>
+    .el-table .warning-row {
+        background: oldlace;
+    }
+
+    .el-table .success-row {
+        background: #f0f9eb;
+    }
+</style>
+<script>
+    function setSystem(system) {
+        localStorage['system'] = system
+    }
+    function getSystem() {
+        return localStorage.getItem('system') ? localStorage.getItem('system') : '1';
+    }
+    const sys = '{{ system }}';
+    const system = JSON.parse(sys.replace(/&quot;/g, '"'));
+    const defaultSystem = getSystem();
+
+    new Vue({
+        el: '#app',
+        delimiters: ['${', '}$'],
+        data() {
+            return {
+                systems: system,
+                activeHost: defaultSystem,
+                activeIndex: '1',
+                activeIndex2: '1',
+                mqData: []
+            };
+        },
+        created() {
+            this.getMq()
+        },
+        methods: {
+            tableRowClassName({row, rowIndex}) {
+                if (row.consumers < 1) {
+                    return 'warning-row';
+                } else if (row.consumers > 1) {
+                    return 'success-row';
+                }
+                return '';
+            },
+            handleSelect(key, keyPath) {
+                const urls = [
+                    '/mq', '/supervisor', 'monitor'
+                ];
+                location.href = urls[key-1]
+            },
+            getMq() {
+                axios.get('/api/v1/mq?system=' + this.activeHost).then((response) => {
+                    this.mqData = response.data;
+
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            handleSystem(key, keyPath) {
+                setSystem(keyPath);
+                axios.get('/api/v1/mq?system=' + keyPath).then((response) => {
+                    this.mqData = response.data;
+                }).catch(function (error) {
+                    console.log(error);
+                });
+                console.log(111,getSystem());
+            }
+        }
+    });
+
+</script>
+</html>

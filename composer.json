@@ -1,0 +1,40 @@
+{
+    "name": "zhaqq/tms-monitor",
+    "type": "project",
+    "prefer-stable": true,
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "keywords": [
+        "FastD"
+    ],
+    "authors": [
+        {
+            "name": "Zhaqq",
+            "email": "qiuxiaoweipp@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "fastd/fastd": "~3.2.7",
+        "zhaqq/fastd-eloquent": "^1.1",
+        "symfony/http-foundation": "^4.3",
+        "runner/validation": "^1.0",
+        "predis/predis": "^1.1",
+        "zhaqq/xml-rpc": "dev-master",
+        "fastd/viewer": "^0.1.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.0",
+        "phpunit/dbunit": "^2.0"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src"
+        },
+
+        "files": []
+    }
+}
