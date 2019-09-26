@@ -10,3 +10,4 @@ before_install:
   - composer update -vv
 after_script:
   - if [ $(phpenv version-name) = "7.3" ]; then wget https://scrutinizer-ci.com/ocular.phar fi
+  - if [ $(phpenv version-name) = "7.3" ]; then php ocular.phar code-coverage:upload --format=php-clover coverage.clover fi
