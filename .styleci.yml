@@ -1,12 +1,7 @@
-preset: symfony
+preset: psr2
 
 risky: false
 
-disabled:
-    - binary_operator_spaces
-enabled:
-    - concat_space:
-        - spacing: one
 finder:
     name:
         - "*.php"
