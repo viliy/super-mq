@@ -4,6 +4,8 @@ php:
 - '7.2'
 - '7.3'
 
+services:
+  - mysql
 
 before_install:
   - mysql -e 'SET @@GLOBAL.wait_timeout=3'
