@@ -15,15 +15,18 @@ filter:
         - 'config/*'
         - 'runtime/*'
 build:
-    environment:
-        php:
-            version: 7.3
-    project_setup:
-        before:
-            - pecl install zip
-    tests:
-        override:
-            -   command: bin/phpunit --coverage-clover=my-coverage-file
-                coverage:
-                    file: my-coverage-file
-                    format: php-clover
+    nodes:
+        analysis:
+            environment:
+                php:
+                    version: 7.3
+            project_setup:
+                before:
+                    - pecl install zip
+            tests:
+                override:
+                    -   php-scrutinizer-run
+                    -   command: bin/phpunit --coverage-clover=my-coverage-file
+                        coverage:
+                            file: my-coverage-file
+                            format: php-clover
