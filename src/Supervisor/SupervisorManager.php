@@ -70,7 +70,7 @@ class SupervisorManager extends ProcessManager
     {
         try {
             $this->rpcClient->stopProcessGroup($group, true);
-        }catch (\Throwable $exception) {
+        } catch (\Throwable $exception) {
         }
 
         return $this->rpcClient->startProcessGroup($group);

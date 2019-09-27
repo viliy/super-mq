@@ -5,13 +5,13 @@ declare(strict_types=1);
 /**
  * Class SupervisorController.
  */
+
 namespace App\Controller;
 
 use App\Cache;
 
 /**
- * Class SupervisorController
- * @package App\Controller
+ * Class SupervisorController.
  */
 class SupervisorController
 {

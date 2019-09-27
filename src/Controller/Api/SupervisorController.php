@@ -14,8 +14,7 @@ use App\Supervisor\SupervisorManager;
 use Psr\Cache\InvalidArgumentException;
 
 /**
- * Class SupervisorController
- * @package App\Controller\Api
+ * Class SupervisorController.
  */
 class SupervisorController
 {
@@ -23,6 +22,7 @@ class SupervisorController
      * @param ServerRequest $request
      *
      * @return \FastD\Http\Response
+     *
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function index(ServerRequest $request)
@@ -40,6 +40,7 @@ class SupervisorController
      * @param ServerRequest $request
      *
      * @return \FastD\Http\Response
+     *
      * @throws InvalidArgumentException
      */
     public function restart(ServerRequest $request)
@@ -51,12 +52,12 @@ class SupervisorController
             $super->restart($request->getParam('group'));
         } catch (\Throwable $e) {
             return json([
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
 
         return json([
-            'message' => '启动完成'
+            'message' => '启动完成',
         ]);
     }
 
@@ -64,6 +65,7 @@ class SupervisorController
      * @param ServerRequest $request
      *
      * @return \FastD\Http\Response
+     *
      * @throws InvalidArgumentException
      */
     public function stop(ServerRequest $request)
@@ -75,12 +77,12 @@ class SupervisorController
             $super->stop($request->getParam('group'));
         } catch (\Throwable $e) {
             return json([
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
 
         return json([
-            'message' => '已停止运行'
+            'message' => '已停止运行',
         ]);
     }
 }

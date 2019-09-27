@@ -23,7 +23,7 @@ class Storage
      */
     public function store($mq)
     {
-        $data      = app()->get('mq_client_'.Cache::systemId()[$mq]['name'])->queues();
+        $data      = app()->get('mq_client_' . Cache::systemId()[$mq]['name'])->queues();
         $processes = Process::system($mq)
             ->select(['id', 'mq_name'])->withTrashed()->get()->pluck('id', 'mq_name')->toArray();
         $mqInfo    = collect($data)->keyBy('name')->toArray();
@@ -60,7 +60,7 @@ class Storage
      */
     public function update($mq)
     {
-        $data      = app()->get('mq_client_'.Cache::systemId()[$mq]['name'])->queues();
+        $data      = app()->get('mq_client_' . Cache::systemId()[$mq]['name'])->queues();
         $processes = Process::system($mq)
             ->select(['id', 'mq_name'])->withTrashed()->get()->keyBy('mq_name')->toArray();
         $mqInfo    = collect($data)->keyBy('name')->toArray();

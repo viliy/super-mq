@@ -5,7 +5,6 @@ namespace App\Controller\Api;
 use App\Cache;
 use App\Model\Process;
 use App\RabbitMQ\Storage;
-use App\RabbitMQ\MqClient;
 use FastD\Http\ServerRequest;
 use App\Supervisor\SupervisorManager;
 
@@ -18,6 +17,7 @@ class MqController
      * @param ServerRequest $request
      *
      * @return \FastD\Http\Response
+     *
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function index(ServerRequest $request)

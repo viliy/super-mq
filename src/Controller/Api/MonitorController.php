@@ -62,7 +62,7 @@ class MonitorController
      */
     public function status(ServerRequest $request)
     {
-        $id = $request->getAttribute('id', false);
+        $id      = $request->getAttribute('id', false);
         $process = Process::find($id)->first();
         if (!$process) {
             return json([
