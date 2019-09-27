@@ -21,5 +21,6 @@ after_script:
 
 script:
   - ls
+  - pwd
   - cp .env.yml.example .env
   - ./bin/phpunit --coverage-text --coverage-clover=coverage.clover
