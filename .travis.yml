@@ -20,7 +20,7 @@ after_script:
   - if [ $(phpenv version-name) = "7.3" ]; then php ocular.phar code-coverage:upload --format=php-clover coverage.clover fi
 
 script:
-  - ls
+  - ls src/
   - pwd
   - cp .env.yml.example .env
   - ./bin/phpunit --coverage-text --coverage-clover=coverage.clover
