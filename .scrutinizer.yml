@@ -1,5 +1,5 @@
 tools:
-#    external_code_coverage: true
+    # external_code_coverage: true
     php_mess_detector: true
     php_code_sniffer: true
     sensiolabs_security_checker: true
@@ -7,20 +7,29 @@ tools:
     php_pdepend: true
     php_loc:
         enabled: true
-        excluded_dirs: [vendor, tests]
+        excluded_dirs: [config, bin, tests, src/Tests, src/Process, src/Views, database, runtime]
 filter:
     excluded_paths:
-        - 'tests/*'
+        - 'src/Tests/*'
+        - 'vendor/*'
+        - 'database/*'
+        - 'config/*'
+        - 'runtime/*'
+        - 'web/*'
+        - 'bin/*'
 build:
     environment:
         php:
             version: 7.3
     project_setup:
         before:
-            - pecl install zip
+            - pecl install swoole
+            - mysql -uroot -e "CREATE DATABASE IF NOT EXISTS monitor;"
+
     tests:
         override:
-            -   command: ./bin/phpunit --coverage-clover=my-coverage-file
+            -
+                command: vendor/bin/phpunit --coverage-clover=my-coverage-file
                 coverage:
                     file: my-coverage-file
                     format: php-clover

@@ -6,8 +6,16 @@ php:
 
 
 before_install:
+  - mysql -e 'SET @@GLOBAL.wait_timeout=3'
+  - mysql -e 'SET @@GLOBAL.interactive_timeout=3'
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS monitor;'
+  - mysql -e 'use monitor;'
+
   - composer self-update
-  - composer update -vv
+  - composer install --prefer-source --no-interaction --dev
+
 after_script:
   - if [ $(phpenv version-name) = "7.3" ]; then wget https://scrutinizer-ci.com/ocular.phar fi
   - if [ $(phpenv version-name) = "7.3" ]; then php ocular.phar code-coverage:upload --format=php-clover coverage.clover fi
+
+script: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
