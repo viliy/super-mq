@@ -79,7 +79,7 @@ class Cache
     public static function cache_middleware($key, $callback, $expire = null)
     {
         $item = cache()->getItem($key);
-        if (true) {
+        if (!$item->isHit()) {
             if (false === $data = call_user_func($callback)) {
                 return false;
             }
