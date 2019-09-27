@@ -5,7 +5,8 @@ risky: false
 disabled:
     - binary_operator_spaces
 enabled:
-    - concat_space: { spacing: one }
+    - concat_space:
+        - spacing: one
 finder:
     name:
         - "*.php"
