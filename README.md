@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/viliy/super-mq.svg?branch=master)](https://travis-ci.com/viliy/super-mq)
 [![Build Status](https://scrutinizer-ci.com/g/viliy/super-mq/badges/build.png?b=master)](https://scrutinizer-ci.com/g/viliy/super-mq/build-status/master)
+[![StyleCI](https://github.styleci.io/repos/211151687/shield?branch=master)](https://github.styleci.io/repos/211151687)
 
 * PHP >= 7.1
 
