@@ -6,7 +6,7 @@ return [
     /*
      * The application name.
      */
-    'name'       => 'tms_monitor',
+    'name'       => 'super_monitor',
 
     /*
      * The application timezone.
